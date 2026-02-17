@@ -78,42 +78,20 @@
                         </div>
 
                         <div class="mb-3">
+   
+
+   <div class="mb-3">
     <label class="form-label fw-semibold">Phone Number</label>
-
-    <div class="input-group">
-        <input type="text"
-               class="form-control"
-               name="phone"
-               id="phone"
-               placeholder="+91 XXXXX XXXXX"
-               required>
-
-        <button type="button"
-                class="btn btn-outline-success"
-                onclick="sendOTP()">
-            Send OTP
-        </button>
-    </div>
+    <input type="text"
+           class="form-control form-control-lg"
+           name="phone"
+           placeholder="+91 XXXXX XXXXX"
+           required>
 </div>
 
-<div class="mb-3" id="otpSection" style="display:none;">
-    <label class="form-label fw-semibold">Enter OTP</label>
-
-    <div class="input-group">
-        <input type="text"
-               class="form-control"
-               id="otp"
-               placeholder="Enter 6 digit OTP">
-
-        <button type="button"
-                class="btn btn-success"
-                onclick="verifyOTP()">
-            Verify
-        </button>
-    </div>
-
-    <small id="otpMessage" class="text-muted"></small>
 </div>
+
+
 
 
                         <div class="mb-3">
@@ -155,51 +133,9 @@
 
     </div>
 </div>
-<script>
-function sendOTP() {
-    let phone = document.getElementById("phone").value;
 
-    fetch("/leads/send-otp/", {
 
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({ phone: phone })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === "success") {
-            document.getElementById("otpSection").style.display = "block";
-            document.getElementById("otpMessage").innerText = "OTP sent successfully!";
-        }
-    });
-}
 
-function verifyOTP() {
-    let otp = document.getElementById("otp").value;
 
-  fetch("/leads/verify-otp/", {
-
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRFToken": "{{ csrf_token }}"
-        },
-        body: JSON.stringify({ otp: otp })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === "verified") {
-            document.getElementById("otpMessage").innerText = "Phone Verified ✅";
-            document.getElementById("otpMessage").classList.add("text-success");
-        } else {
-            document.getElementById("otpMessage").innerText = "Invalid OTP ❌";
-            document.getElementById("otpMessage").classList.add("text-danger");
-        }
-    });
-}
-</script>
 
 {% endblock %}

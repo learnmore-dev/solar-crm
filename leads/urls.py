@@ -14,7 +14,5 @@ urlpatterns = [
     path("invoice/<int:lead_id>/", views.generate_invoice, name="generate_invoice"),
     path("record_payment/", views.record_payment, name="record_payment"),
 
-    # OTP
-    path("send-otp/", views.send_otp, name="send_otp"),
-    path("verify-otp/", views.verify_otp, name="verify_otp"),
+   
 ]

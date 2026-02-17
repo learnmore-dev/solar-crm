@@ -40,7 +40,7 @@
 
 <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-success shadow-sm">
-    <div class="container-fluid px-4"></div>
+    <div class="container">
 
         <a class="navbar-brand fw-semibold" href="{% url 'home' %}">
             <i class="fa-solid fa-solar-panel"></i> Solar CRM
@@ -57,18 +57,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-lg-center">
 <li class="nav-item"><a class="nav-link" href="{% url 'leads:enquiry' %}">Enquiry</a></li>
-<li class="nav-item dropdown"></li>
-    <a class="nav-link dropdown-toggle fw-semibold" href="#" data-bs-toggle="dropdown">
-
-        Leads
-    </a>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="{% url 'leads:enquiry' %}">Add Lead</a></li>
-        <li><a class="dropdown-item" href="{% url 'leads:lead_list' %}">View Leads</a></li>
-        <li><a class="dropdown-item" href="{% url 'leads:dashboard' %}">Dashboard</a></li>
-    </ul>
-</li>
-
+<li class="nav-item"><a class="nav-link" href="{% url 'leads:lead_list' %}">Leads</a></li>
 <li class="nav-item"><a class="nav-link" href="{% url 'leads:dashboard' %}">Dashboard</a></li>
 
                 <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
@@ -319,4 +308,4 @@ function makePayment(amount) {
 
 
 </body>
-</html>
+</html>                      where i update the things inside the base html file

@@ -1,10 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Q, Count
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-import json
-import random
 
 from .models import Lead, LeadNote, STATUS_CHOICES
 from .forms import LeadForm
@@ -16,27 +12,21 @@ from .forms import LeadForm
 def enquiry_view(request):
     if request.method == "POST":
 
-        # OTP verification check
-        if not request.session.get("is_verified"):
-            messages.error(request, "Please verify phone number first.")
-            return redirect("leads:enquiry")
-
         name = request.POST.get("name")
         phone = request.POST.get("phone")
         email = request.POST.get("email")
+        status = request.POST.get("status")
+        customer_type = request.POST.get("customer_type")
 
         Lead.objects.create(
             name=name,
             phone=phone,
             email=email,
+            status=status,
+            customer_type=customer_type,
         )
 
         messages.success(request, "Enquiry submitted successfully!")
-
-        # Clear OTP session after successful submission
-        request.session.pop("otp", None)
-        request.session.pop("is_verified", None)
-
         return redirect("leads:enquiry")
 
     return render(request, "leads/enquiry.html")
@@ -111,6 +101,7 @@ def lead_edit(request, pk):
         lead.phone = request.POST['phone']
         lead.status = request.POST['status']
         lead.save()
+
         messages.success(request, "Lead updated successfully!")
         return redirect('leads:lead_list')
 
@@ -126,6 +117,7 @@ def lead_edit(request, pk):
 def lead_delete(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
     lead.delete()
+
     messages.success(request, "Lead deleted successfully!")
     return redirect("leads:lead_list")
 
@@ -184,42 +176,3 @@ def record_payment(request):
         return redirect("leads:dashboard")
 
     return render(request, "leads/record_payment.html")
-
-
-# ---------------------------
-# OTP Send
-# ---------------------------
-@csrf_exempt
-def send_otp(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        phone = data.get("phone")
-
-        otp = random.randint(100000, 999999)
-
-        request.session["otp"] = str(otp)
-        request.session["phone"] = phone
-
-        print("OTP:", otp)  # For testing only
-
-        return JsonResponse({"status": "success"})
-
-    return JsonResponse({"status": "invalid"})
-
-
-# ---------------------------
-# OTP Verify
-# ---------------------------
-@csrf_exempt
-def verify_otp(request):
-    if request.method == "POST":
-        data = json.loads(request.body)
-        entered_otp = data.get("otp")
-
-        if request.session.get("otp") == entered_otp:
-            request.session["is_verified"] = True
-            return JsonResponse({"status": "verified"})
-        else:
-            return JsonResponse({"status": "failed"})
-
-    return JsonResponse({"status": "invalid"})
