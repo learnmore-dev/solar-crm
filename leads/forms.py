@@ -1,8 +1,6 @@
 from django import forms
 from .models import Lead
 from django.contrib.auth.models import User
-
-
 # ===============================
 # ENQUIRY FORM (No Status Field)
 # ===============================
@@ -27,8 +25,6 @@ class EnquiryForm(forms.ModelForm):
             'follow_up_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
-
-
 # ===============================
 # FULL LEAD FORM (WITH Status)
 # ===============================

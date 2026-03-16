@@ -100,8 +100,12 @@ def enquiry(request):
 
 def lead_list(request):
     query = request.GET.get("q", "").strip()
+    start_date = request.GET.get("start_date")
+    end_date = request.GET.get("end_date")
+
     leads = Lead.objects.all()
 
+    # Search filter
     if query:
         leads = leads.filter(
             Q(name__icontains=query) |
@@ -109,13 +113,18 @@ def lead_list(request):
             Q(phone__icontains=query)
         )
 
+    # Date filter
+    if start_date and end_date:
+        leads = leads.filter(created_at__date__range=[start_date, end_date])
+
     leads = leads.order_by("-created_at")
 
     return render(request, "leads/lead_list.html", {
         "leads": leads,
         "query": query,
+        "start_date": start_date,
+        "end_date": end_date
     })
-
 
 def lead_detail(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
