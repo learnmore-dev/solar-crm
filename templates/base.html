@@ -92,21 +92,21 @@
             </ul>
 
             <!-- RIGHT SIDE -->
-            <ul class="navbar-nav ms-auto">
-
-                <li class="nav-item">
-                    <span class="nav-link">👤 {{ user.username }}</span>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link text-warning" href="{% url 'logout' %}">Logout</a>
-                </li>
-
-            </ul>
+             
+             <!-- Right side: Hi, CRM / username and Login/Logout -->
+      <ul class="navbar-nav ms-auto">
+        {% if user.is_authenticated %}
+          <li class="nav-item"><span class="nav-link">Hi, {{ user.username }}</span></li>
+          <li class="nav-item"><a href="{% url 'logout' %}" class="nav-link text-warning">Logout</a></li>
+        {% else %}
+          <li class="nav-item"><a href="{% url 'login' %}" class="nav-link">Login</a></li>
+        {% endif %}
+      </ul>
 
         </div>
     </div>
 </nav>
+
 
 
 <!-- MAIN CONTENT -->

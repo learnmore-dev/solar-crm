@@ -21,10 +21,10 @@ from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from datetime import date
 from .models import Lead
+from django.contrib.auth.decorators import login_required
+
 
 @login_required
-
-
 def dashboard(request):
     today = date.today()
 
@@ -84,6 +84,7 @@ def dashboard(request):
 # ===============================
 # LEAD PAGES
 # ===============================
+@login_required
 def enquiry(request):
     if request.method == "POST":
         form = EnquiryForm(request.POST)
@@ -97,7 +98,7 @@ def enquiry(request):
 
     return render(request, 'leads/enquiry.html', {'form': form})
 
-
+@login_required
 def lead_list(request):
     query = request.GET.get("q", "").strip()
     start_date = request.GET.get("start_date")
@@ -125,11 +126,13 @@ def lead_list(request):
         "start_date": start_date,
         "end_date": end_date
     })
-
+@login_required
 def lead_detail(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
     return render(request, "leads/lead_detail.html", {"lead": lead})
 
+
+@login_required
 
 def add_lead(request):
     if request.method == "POST":
@@ -143,7 +146,7 @@ def add_lead(request):
 
     return render(request, "leads/add_lead.html", {"form": form})
 
-
+@login_required
 def lead_edit(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
 
@@ -158,7 +161,7 @@ def lead_edit(request, pk):
 
     return render(request, 'leads/lead_edit.html', {'form': form})
 
-
+@login_required
 def lead_delete(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
     lead.delete()
@@ -256,7 +259,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from .models import Lead
 from .forms import ConvergentLeadForm
 from django.contrib import messages
-
+@login_required
 def convergent_lead(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
 
@@ -280,6 +283,7 @@ from django.db.models import Count
 from datetime import date
 from .forms import ConvergentLeadForm
 
+@login_required
 def convergent_lead(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
 
@@ -320,6 +324,7 @@ def convergent_lead(request, pk):
     }
 
     return render(request, "leads/convergent_lead.html", context)
+@login_required
 def convergent_list(request):
     leads = Lead.objects.exclude(status='new').order_by('-created_at')
 
@@ -330,12 +335,14 @@ def convergent_list(request):
 from datetime import date
 
 # All Converted Leads
+@login_required
 def convergent_list(request):
     leads = Lead.objects.exclude(status='new').order_by('-created_at')
     return render(request, 'leads/convergent_list.html', {'leads': leads})
 
 
 # Today's Followups
+@login_required
 def today_followups(request):
     today = date.today()
     leads = Lead.objects.filter(follow_up_date=today).exclude(status='new')
