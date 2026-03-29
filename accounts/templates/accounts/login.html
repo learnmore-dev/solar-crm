@@ -47,7 +47,6 @@
         color: #6b7280;
     }
 
-    /* 3D IMAGE */
     .visual-wrap {
         display: flex;
         justify-content: center;
@@ -68,7 +67,6 @@
         75%  { transform: rotateY(-8deg) rotateX(-3deg) translateY(-10px); }
         100% { transform: rotateY(0deg) rotateX(0deg) translateY(0); }
     }
-
 </style>
 
 <div class="container login-page">
@@ -93,26 +91,37 @@
                         </div>
                     {% endfor %}
                 {% endif %}
-<form method="post">
-    {% csrf_token %}
 
-    <div class="mb-3">
-        <label class="form-label fw-semibold">Email</label>
-        <input type="email"
-               name="email"
-               class="form-control"
-               placeholder="you@company.com"
-               required>
-    </div>
+                <form method="post">
+                    {% csrf_token %}
 
-    <button class="btn btn-success w-100 mt-2">
-        Send OTP
-    </button>
-</form>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Username</label>
+                        <input type="text"
+                               name="username"
+                               class="form-control"
+                               placeholder="Enter your username"
+                               required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password"
+                               name="password"
+                               class="form-control"
+                               placeholder="Enter your password"
+                               required>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100 mt-2">
+                        Login
+                    </button>
+                </form>
 
                 <p class="login-hint text-center mt-4">
                     Secure • Encrypted • Trusted by solar professionals
                 </p>
+
             </div>
         </div>
 

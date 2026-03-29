@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+    <h2 class="mb-4 fw-bold">Conversions</h2>
+
+    <!-- ===================== -->
+    <!-- SUMMARY CARDS -->
+    <!-- ===================== -->
+  <div class="row mb-4">
+
+    <!-- Total -->
+    <div class="col-md-4 mb-3">
+        <a href="{% url 'leads:convergent_list' %}" style="text-decoration:none;">
+            <div class="card text-white bg-info shadow-sm h-100">
+                <div class="card-body">
+                    <h6>Total Conversions</h6>
+                    <h3>{{ total_convergent }}</h3>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Today -->
+    <div class="col-md-4 mb-3">
+        <a href="{% url 'leads:today_followups' %}" style="text-decoration:none;">
+            <div class="card text-white bg-warning shadow-sm h-100">
+                <div class="card-body">
+                    <h6>Today's Followups</h6>
+                    <h3>{{ today_followups.count }}</h3>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- Overdue -->
+    <div class="col-md-4 mb-3">
+        <a href="{% url 'leads:overdue_followups' %}" style="text-decoration:none;">
+            <div class="card text-white bg-danger shadow-sm h-100">
+                <div class="card-body">
+                    <h6>Overdue Followups</h6>
+                    <h3>{{ overdue_followups.count }}</h3>
+                </div>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+    <!-- ===================== -->
+    <!-- STATUS CHART -->
+    <!-- ===================== -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body text-center">
+            <h5 class="mb-3">Conversion Status Distribution</h5>
+            <div style="width:350px; height:350px; margin:auto;">
+                <canvas id="statusChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== -->
+    <!-- RECENT CONVERSIONS -->
+    <!-- ===================== -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5>Recent Conversions</h5>
+            <table class="table table-striped mt-3">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lead in recent_convergent %}
+                    <tr>
+                        <td>{{ lead.name }}</td>
+                        <td>{{ lead.phone }}</td>
+                        <td>{{ lead.get_status_display }}</td>
+                        <td>{{ lead.created_at|date:"d-m-Y" }}</td>
+                        <td>
+                            <a href="{% url 'leads:convergent_lead' lead.pk %}"
+                               class="btn btn-sm btn-primary">
+                               Update
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">
+                            No conversions found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ===================== -->
+    <!-- UPDATE CURRENT LEAD -->
+    <!-- ===================== -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4>Update Lead Stage: {{ lead.name }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row g-3">
+
+                    <div class="col-md-6">
+                        <label>Status</label>
+                        {{ form.status }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Follow-up Date</label>
+                        {{ form.follow_up_date }}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label>Follow-up Time</label>
+                        {{ form.follow_up_time }}
+                    </div>
+
+                    <div class="col-md-12">
+                        <label>Remarks</label>
+                        {{ form.remarks }}
+                    </div>
+
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-success">
+                        Update Stage
+                    </button>
+                    <a href="{% url 'leads:lead_list' %}"
+                       class="btn btn-secondary">
+                       Back
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- ===================== -->
+<!-- CHART JS -->
+<!-- ===================== -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('statusChart');
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                {% for item in status_counts %}
+                    '{{ item.status }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for item in status_counts %}
+                        {{ item.count }},
+                    {% endfor %}
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+
+{% endblock %}

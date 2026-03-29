@@ -1,57 +1,140 @@
-# leads/models.py
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import date
 
-from django.db import models
-from django.contrib.auth.models import User
 
 class Lead(models.Model):
 
+    # ---------------- STATUS ----------------
     STATUS_CHOICES = [
         ('new', 'New'),
-        ('contacted', 'Contacted'),
+        ('site_survey_scheduled', 'Site Survey Scheduled'),
+        ('site_survey_done', 'Site Survey Done'),
+        ('proposal_sent', 'Proposal/Quotation Sent'),
+        ('negotiation', 'Negotiation'),
+        ('order_confirmed', 'Order Confirmed'),
+        ('installation_scheduled', 'Installation Scheduled'),
+        ('installation_completed', 'Installation Completed'),
         ('converted', 'Converted'),
-        ('pending', 'Pending'),
     ]
 
+    # ---------------- INSTALLATION ----------------
+    INSTALLATION_TYPE_CHOICES = [
+        ('residential', 'Residential'),
+        ('commercial', 'Commercial'),
+        ('industrial', 'Industrial'),
+        ('offgrid', 'Off Grid'),
+    ]
+
+    # ---------------- ROOF TYPE ----------------
+    ROOF_TYPE_CHOICES = [
+        ('rcc', 'RCC'),
+        ('sheet', 'Sheet'),
+        ('tile', 'Tile'),
+        ('metal', 'Metal'),
+        ('other', 'Other'),
+    ]
+
+    # ---------------- FINANCE ----------------
+    FINANCING_CHOICES = [
+        ('cash', 'Cash'),
+        ('loan', 'Loan'),
+        ('emi', 'EMI'),
+    ]
+
+    # ---------------- LEAD SOURCE ----------------
+    MEDIUM_CHOICES = [
+        ('email', 'Email'),
+        ('phone', 'Phone'),
+        ('whatsapp', 'WhatsApp'),
+        ('social_media', 'Social Media'),
+        ('referral', 'Referral'),
+    ]
+
+    SOURCE_CHOICES = [
+        ('chat', 'Chat'),
+        ('website', 'Website'),
+        ('walkin', 'Walk-in'),
+    ]
+
+    CAMPAIGN_CHOICES = [
+        ('summer_sale', 'Summer Sale'),
+        ('referral_program', 'Referral Program'),
+        ('social_media_ad', 'Social Media Ad'),
+        ('offline_event', 'Offline Event'),
+    ]
+
+    # ================= BASIC INFO =================
     name = models.CharField(max_length=255)
     email = models.EmailField()
     phone = models.CharField(max_length=20)
 
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new')
-    created_at = models.DateTimeField(auto_now_add=True)
+    # ================= SOLAR DETAILS =================
+    roof_type = models.CharField(
+        max_length=20,
+        choices=ROOF_TYPE_CHOICES,
+        blank=True,
+        null=True
+    )
 
-    # Marketing Info
-    source = models.CharField(max_length=100, blank=True, null=True)
-    medium = models.CharField(max_length=100, blank=True, null=True)
-    campaign = models.CharField(max_length=100, blank=True, null=True)
-    
-    INSTALLATION_TYPE_CHOICES = [
-    ('residential', 'Residential'),
-    ('commercial', 'Commercial'),
-    ('industrial', 'Industrial'),
-    ('offgrid', 'Off Grid'),
-]
+    average_monthly_bill = models.IntegerField(
+        blank=True,
+        null=True,
+        help_text="Enter electricity bill in ₹"
+    )
+
+    sanctioned_load = models.FloatField(
+        blank=True,
+        null=True,
+        help_text="Enter load in kW"
+    )
+
+    financing_preference = models.CharField(
+        max_length=20,
+        choices=FINANCING_CHOICES,
+        blank=True,
+        null=True
+    )
 
     installation_type = models.CharField(
-    max_length=100,
-    choices=INSTALLATION_TYPE_CHOICES,
-    blank=True,
-    null=True
-)
+        max_length=50,
+        choices=INSTALLATION_TYPE_CHOICES,
+        blank=True,
+        null=True
+    )
 
-    # Solar Details
+    # ================= CRM TRACKING =================
+    status = models.CharField(
+        max_length=50,
+        choices=STATUS_CHOICES,
+        default='new'
+    )
+
+    source = models.CharField(
+        max_length=50,
+        choices=SOURCE_CHOICES,
+        blank=True,
+        null=True
+    )
+
+    medium = models.CharField(
+        max_length=50,
+        choices=MEDIUM_CHOICES,
+        blank=True,
+        null=True
+    )
+
+    campaign = models.CharField(
+        max_length=50,
+        choices=CAMPAIGN_CHOICES,
+        blank=True,
+        null=True
+    )
+
     remarks = models.TextField(blank=True, null=True)
-    roof_type = models.CharField(max_length=100, blank=True, null=True)
-    average_monthly_bill = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    financing_preference = models.CharField(max_length=100, blank=True, null=True)
-    sanctioned_load = models.CharField(max_length=100, blank=True, null=True)
 
-    profile_pic = models.ImageField(upload_to='profiles/', blank=True, null=True)
-
-    # Follow-up
-    follow_up_date = models.DateField(null=True, blank=True)
-    follow_up_time = models.TimeField(null=True, blank=True)
+    follow_up_date = models.DateField(blank=True, null=True)
+    follow_up_time = models.TimeField(blank=True, null=True)
 
     assigned_to = models.ForeignKey(
         User,
@@ -61,19 +144,17 @@ class Lead(models.Model):
         related_name='assigned_leads'
     )
 
-    def __str__(self):
-        return self.name
+    created_at = models.DateTimeField(auto_now_add=True)
 
-    # Optional: Convenience property to check if follow-up is today
+    # ================= DISPLAY =================
+    def __str__(self):
+        return f"{self.name} - {self.status}"
+
+    # ================= FOLLOWUP HELPERS =================
     @property
     def is_followup_today(self):
-        from datetime import date
         return self.follow_up_date == date.today() if self.follow_up_date else False
 
-    # Optional: Convenience property for overdue follow-ups
     @property
     def is_overdue(self):
-        from datetime import date
-        if self.follow_up_date:
-          return self.follow_up_date < date.today()
-        return False
+        return self.follow_up_date < date.today() if self.follow_up_date else False

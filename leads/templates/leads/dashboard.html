@@ -1,111 +1,269 @@
 {% extends "base.html" %}
-
 {% block content %}
 
 <div class="container mt-4">
-    <h2 class="mb-4">Dashboard</h2>
+    <h2 class="mb-4 fw-bold">Dashboard</h2>
 
-    <!-- Summary Cards -->
+    <!-- ===================== -->
+    <!-- SUMMARY CARDS -->
+    <!-- ===================== -->
     <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h5>Total Leads</h5>
-                <h3>{{ total_leads }}</h3>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-primary shadow-sm h-100">
+                <div class="card-body">
+                    <h6>Total Leads</h6>
+                    <h3>{{ total_leads }}</h3>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h5>Converted</h5>
-                <h3>{{ converted_leads }}</h3>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-success shadow-sm h-100">
+                <div class="card-body">
+                    <h6>Converted</h6>
+                    <h3>{{ converted_leads }}</h3>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h5>Pending</h5>
-                <h3>{{ pending_leads }}</h3>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-warning shadow-sm h-100">
+                <div class="card-body">
+                    <h6>Created Today</h6>
+                    <h3>{{ created_today }}</h3>
+                </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card p-3">
-                <h5>Total Revenue</h5>
-                <h3>₹ {{ total_revenue }}</h3>
+
+        <div class="col-md-3 mb-3">
+            <div class="card text-white bg-danger shadow-sm h-100">
+                <div class="card-body">
+                    <h6>Not Followed Up Yet</h6>
+                    <h3>{{ not_followed_up }}</h3>
+                </div>
             </div>
         </div>
+
     </div>
 
-    <!-- Status Summary -->
-    <div class="card mb-4">
+
+    <!-- ===================== -->
+    <!-- CHART + STATUS TABLE -->
+    <!-- ===================== -->
+    <div class="row mb-4">
+
+        <!-- Pie Chart -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="mb-3">Source Wise Lead Distribution</h5>
+                    <div style="width:350px; height:350px; margin:auto;">
+                        <canvas id="sourceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Table -->
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h5 class="card-title">Leads by Status</h5>
+                    <table class="table table-bordered mt-3">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Status</th>
+                                <th>Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in status_counts %}
+                                <tr>
+                                    <td>{{ item.status }}</td>
+                                    <td>{{ item.count }}</td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2" class="text-center text-muted">
+                                        No data available
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <!-- ===================== -->
+    <!-- RECENT LEADS -->
+    <!-- ===================== -->
+    <div class="card mb-4 shadow-sm">
         <div class="card-body">
-            <h5 class="card-title">Leads by Status</h5>
-            <table class="table table-bordered mt-3">
-                <thead class="table-dark">
+            <h5>Recent Leads</h5>
+            <table class="table table-striped mt-3">
+                <thead class="table-light">
                     <tr>
+                        <th>Name</th>
+                        <th>Phone</th>
                         <th>Status</th>
-                        <th>Count</th>
+                        <th>Date</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for item in status_counts %}
-                        <tr>
-                            <td>{{ item.status }}</td>
-                            <td>{{ item.count }}</td>
-                        </tr>
+                    {% for lead in recent_leads %}
+                    <tr>
+                       <td>
+    <a href="{% url 'leads:lead_detail' lead.pk %}" style="text-decoration:none; color:inherit;">
+        {{ lead.name }}
+    </a>
+</td>
+                        <td>{{ lead.phone }}</td>
+                        <td>{{ lead.status }}</td>
+                        <td>{{ lead.created_at|date:"d-m-Y" }}</td>
+                    </tr>
                     {% empty %}
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No data available</td>
-                        </tr>
+                    <tr>
+                        <td colspan="4" class="text-center text-muted">
+                            No recent leads
+                        </td>
+                    </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
     </div>
 
-    <!-- Recent Leads -->
-    <h4>Recent Leads</h4>
-    <table class="table">
-        <tr>
-            <th>Name</th>
-            <th>Phone</th>
-            <th>Status</th>
-            <th>Date</th>
-        </tr>
-        {% for lead in recent_leads %}
-        <tr>
-            <td>{{ lead.name }}</td>
-            <td>{{ lead.phone }}</td>
-            <td>{{ lead.status }}</td>
-            <td>{{ lead.created_at|date:"d-m-Y" }}</td>
-        </tr>
-        {% endfor %}
-    </table>
 
-    <!-- Follow-ups -->
-    <h4>Today's Follow-Ups</h4>
-    {% for lead in today_followups %}
-        <div class="alert alert-warning d-flex justify-content-between align-items-center">
-            <div>{{ lead.name }} - {{ lead.phone }}{% if lead.assigned_to %} ({{ lead.assigned_to.username }}){% endif %}</div>
-            <!-- Optional Google Calendar Link -->
-            <a href="https://www.google.com/calendar/render?action=TEMPLATE&text=Follow-up+with+{{ lead.name }}&dates={{ lead.follow_up_date|date:'Ymd' }}/{{ lead.follow_up_date|date:'Ymd' }}&details=Call+{{ lead.phone }}" target="_blank" class="btn btn-sm btn-primary">
-                Add to Calendar
-            </a>
-        </div>
-    {% empty %}
-        <p>No follow-ups today</p>
-    {% endfor %}
+    <!-- ===================== -->
+    <!-- FOLLOW UPS -->
+    <!-- ===================== -->
 
-    <h4>Overdue Follow-Ups</h4>
-    {% for lead in overdue_followups %}
-        <div class="alert alert-danger d-flex justify-content-between align-items-center">
-            <div>{{ lead.name }} - {{ lead.phone }}{% if lead.assigned_to %} ({{ lead.assigned_to.username }}){% endif %}</div>
-            <!-- Optional Google Calendar Link -->
-            <a href="https://www.google.com/calendar/render?action=TEMPLATE&text=Follow-up+with+{{ lead.name }}&dates={{ lead.follow_up_date|date:'Ymd' }}/{{ lead.follow_up_date|date:'Ymd' }}&details=Call+{{ lead.phone }}" target="_blank" class="btn btn-sm btn-primary">
-                Add to Calendar
-            </a>
+    <div class="row">
+
+        <!-- Today's Followups -->
+        <div class="col-md-6">
+            <h5>Today's Follow-Ups</h5>
+            {% for lead in today_followups %}
+                <div class="alert alert-warning d-flex justify-content-between align-items-center">
+                    <div>
+                        {{ lead.name }} - {{ lead.phone }}
+                        {% if lead.assigned_to %}
+                            ({{ lead.assigned_to.username }})
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted">No follow-ups today</p>
+            {% endfor %}
         </div>
-    {% empty %}
-        <p>No overdue follow-ups</p>
-    {% endfor %}
+
+        <!-- Overdue -->
+        <div class="col-md-6">
+            <h5>Overdue Follow-Ups</h5>
+            {% for lead in overdue_followups %}
+                <div class="alert alert-danger d-flex justify-content-between align-items-center">
+                    <div>
+                        {{ lead.name }} - {{ lead.phone }}
+                        {% if lead.assigned_to %}
+                            ({{ lead.assigned_to.username }})
+                        {% endif %}
+                    </div>
+                </div>
+            {% empty %}
+                <p class="text-muted">No overdue follow-ups</p>
+            {% endfor %}
+        </div>
+
+    </div>
 
 </div>
+
+
+<!-- ===================== -->
+<!-- CHART JS -->
+<!-- ===================== -->
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const ctx = document.getElementById('sourceChart');
+
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: [{% for item in source_counts %}
+                        '{{ item.source|default:"Unknown" }}',
+                     {% endfor %}],
+            datasets: [{
+                data: [{% for item in source_counts %}
+                        {{ item.count }},
+                       {% endfor %}],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '60%',  // Makes donut thickness perfect
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+</script>
+<div class="card mb-4 shadow-sm">
+    <div class="card-body">
+        <h5 class="mb-3">Monthly Leads Overview</h5>
+        <div style="height: 350px;">
+            <canvas id="monthlyChart"></canvas>
+        </div>
+    </div>
+</div>
+<script>
+    const monthlyCtx = document.getElementById('monthlyChart');
+
+    new Chart(monthlyCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for item in monthly_leads %}
+                    '{{ item.month|date:"M Y" }}',
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Leads Created',
+                data: [
+                    {% for item in monthly_leads %}
+                        {{ item.count }},
+                    {% endfor %}
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
 
 {% endblock %}

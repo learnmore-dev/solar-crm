@@ -120,46 +120,27 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/\
 # Static files (CSS, JavaScript, Images)
 
+# Static Files
+# Static Files
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
     BASE_DIR / 'static'
 ]
 
-
-LOGIN_URL = 'login'
-LOGIN_REDIRECT_URL = 'home'
-LOGOUT_REDIRECT_URL = 'login'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-
-
-
-
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'yourgmail@gmail.com'
-EMAIL_HOST_PASSWORD = 'your_app_password'
-LOGIN_URL = '/'
-LOGIN_REDIRECT_URL = '/dashboard/'
-LOGOUT_REDIRECT_URL = '/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'  # For testing in console
-# For real email, use SMTP:
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'your-email@gmail.com'
-# EMAIL_HOST_PASSWORD = 'your-email-password'
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
+# Authentication Redirects
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'leads:dashboard'
+LOGOUT_REDIRECT_URL = 'login'
+
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-
 EMAIL_HOST_USER = 'bbhavanadm@gmail.com'
 EMAIL_HOST_PASSWORD = 'zxbpecueesuixjqt'

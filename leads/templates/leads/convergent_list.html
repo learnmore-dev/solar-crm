@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <h2 class="mb-4">
+        {{ title|default:"All Conversions" }}
+    </h2>
+
+    <table class="table table-striped shadow-sm">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+                <th>Status</th>
+                <th>Followup Date</th>
+                <th>Created</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for lead in leads %}
+            <tr>
+                <td>
+    <a href="{% url 'leads:lead_detail' lead.pk %}" style="text-decoration:none; color:inherit;">
+        {{ lead.name }}
+    </a>
+</td>
+                <td>{{ lead.phone }}</td>
+                <td>{{ lead.get_status_display }}</td>
+                <td>{{ lead.follow_up_date }}</td>
+                <td>{{ lead.created_at|date:"d-m-Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center text-muted">
+                    No Records Found
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+{% endblock %}

@@ -4,15 +4,27 @@
 <div class="container mt-4">
     <h2 class="mb-3">Leads</h2>
 
-    <!-- Search -->
-    <form method="get" class="mb-3">
-        <input type="text"
-               name="q"
-               value="{{ query }}"
-               placeholder="Search by Name / Phone / Email"
-               class="form-control d-inline w-50">
-        <button type="submit" class="btn btn-primary ms-2">Search</button>
-    </form>
+   <form method="get" class="mb-3">
+
+    <input type="text"
+           name="q"
+           value="{{ query }}"
+           placeholder="Search by Name / Phone / Email"
+           class="form-control d-inline w-25">
+
+    <input type="date"
+           name="start_date"
+           value="{{ start_date }}"
+           class="form-control d-inline w-25">
+
+    <input type="date"
+           name="end_date"
+           value="{{ end_date }}"
+           class="form-control d-inline w-25">
+
+    <button type="submit" class="btn btn-primary ms-2">Filter</button>
+
+</form>
 
     <!-- Table -->
     <div class="table-responsive">
@@ -30,17 +42,18 @@
             <tbody>
             {% for lead in leads %}
                 <tr>
-                    <td>{{ lead.name }}</td>
+                    <td>
+    <a href="{% url 'leads:lead_detail' lead.pk %}" style="text-decoration:none; color:inherit;">
+        {{ lead.name }}
+    </a>
+</td>
                     <td>{{ lead.email }}</td>
                     <td>{{ lead.phone }}</td>
                     <td>{{ lead.get_status_display }}</td>
                     <td>{{ lead.created_at|date:"M d, Y h:i A" }}</td>
                     <td>
-                        <!-- ✅ THIS WAS MISSING -->
-                        <a href="{% url 'leads:lead_edit' lead.id %}"
-                           class="btn btn-sm btn-warning">
-                            Edit
-                        </a>
+                        <a href="{% url 'leads:lead_edit' lead.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                        <a href="{% url 'leads:convergent_lead' lead.pk %}" class="btn btn-sm btn-info">Convergent</a>
                     </td>
                 </tr>
             {% empty %}
@@ -52,5 +65,4 @@
         </table>
     </div>
 </div>
-
 {% endblock %}
