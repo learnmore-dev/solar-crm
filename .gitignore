@@ -1,0 +1,29 @@
+cat <<EOL > .gitignore
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+env/
+
+# Django
+*.log
+db.sqlite3
+media/
+staticfiles/
+
+# Environment variables
+.env
+
+# VS Code
+.vscode/
+
+# Mac / Linux
+.DS_Store
+
+# Docker
+*.pid
+EOL
