@@ -321,3 +321,17 @@ body {
     background-color: #198754;
     color: #fff;
 }
+.card {
+    border-radius: 12px;
+}
+
+.table th, .table td {
+    vertical-align: middle;
+}
+.table td, .table th {
+    vertical-align: middle;
+}
+.badge {
+    font-size: 13px;
+    border-radius: 8px;
+}

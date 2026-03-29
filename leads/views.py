@@ -356,3 +356,186 @@ def overdue_followups(request):
 def lead_detail(request, pk):
     lead = get_object_or_404(Lead, pk=pk)
     return render(request, 'leads/lead_detail.html', {'lead': lead})
+
+from datetime import datetime, date
+from django.db.models import Count
+from django.db.models.functions import TruncMonth
+from .models import Attendance
+from django.contrib.auth.decorators import login_required
+
+# ✅ Check In
+@login_required
+def check_in(request):
+    today = date.today()
+
+    attendance, created = Attendance.objects.get_or_create(
+        user=request.user,
+        date=today
+    )
+
+    if not attendance.check_in:
+        attendance.check_in = datetime.now().time()
+        attendance.save()
+
+    return redirect('leads:attendance')
+
+
+# ✅ Check Out
+@login_required
+def check_out(request):
+    today = date.today()
+
+    attendance = Attendance.objects.filter(
+        user=request.user,
+        date=today
+    ).first()
+
+    if attendance and not attendance.check_out:
+        attendance.check_out = datetime.now().time()
+        attendance.save()
+
+    return redirect('leads:attendance')
+
+
+from datetime import date
+from django.contrib.auth.decorators import login_required
+from .models import Attendance
+
+# ✅ Attendance (User)
+@login_required
+def attendance(request):
+    records = Attendance.objects.filter(user=request.user)
+
+    # ✅ Date filter
+    start_date = request.GET.get('start_date')
+    end_date = request.GET.get('end_date')
+
+    if start_date and end_date:
+        records = records.filter(date__range=[start_date, end_date])
+
+    records = records.order_by('-date')
+
+    # ❌ REMOVE STATUS LOGIC HERE (IMPORTANT)
+
+    return render(request, "leads/attendance.html", {
+        "records": records,
+        "start_date": start_date,
+        "end_date": end_date
+    })
+
+
+# ✅ Admin Attendance (All Users)
+@login_required
+def attendance_admin(request):
+    records = Attendance.objects.all().order_by('-date')
+
+    # ❌ REMOVE STATUS LOOP HERE
+
+    return render(request, "leads/attendance_admin.html", {
+        "records": records
+    })
+
+
+
+# ✅ Monthly Report
+@login_required
+def attendance_report(request):
+    report = (
+        Attendance.objects
+        .annotate(month=TruncMonth('date'))
+        .values('month')
+        .annotate(total=Count('id'))
+        .order_by('month')
+    )
+
+    return render(request, "leads/attendance_report.html", {
+        "report": report
+    })
+from .models import Leave
+from .forms import LeaveForm
+
+# ===============================
+# APPLY LEAVE
+# ===============================
+@login_required
+def apply_leave(request):
+
+    if request.method == "POST":
+        form = LeaveForm(request.POST)
+        if form.is_valid():
+            leave = form.save(commit=False)
+            leave.user = request.user
+            leave.save()
+
+            messages.success(request, "Leave applied successfully!")
+            return redirect('leads:apply_leave')
+
+    else:
+        form = LeaveForm()
+
+    return render(request, "leads/apply_leave.html", {
+        "form": form
+    })
+def leave_admin(request):
+    return render(request, "leads/leave_admin.html")
+def leave_admin(request):
+    from .models import Leave
+    leaves = Leave.objects.all()
+    return render(request, "leads/leave_admin.html", {"leaves": leaves})
+from .models import Leave
+
+def approve_leave(request, pk):
+    leave = get_object_or_404(Leave, pk=pk)
+    leave.status = "approved"
+    leave.save()
+    return redirect('leads:leave_admin')
+
+
+def reject_leave(request, pk):
+    leave = get_object_or_404(Leave, pk=pk)
+    leave.status = "rejected"
+    leave.save()
+    return redirect('leads:leave_admin')
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+@login_required
+@user_passes_test(lambda u: u.is_superuser)
+def leave_admin(request):
+    leaves = Leave.objects.all()
+    return render(request, "leads/leave_admin.html", {"leaves": leaves})
+from django.http import HttpResponse
+from openpyxl import Workbook
+from .models import Attendance
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def download_attendance_excel(request):
+
+    # 🔒 Admin only
+    if not request.user.is_superuser:
+        return HttpResponse("❌ Not allowed")
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "Attendance Report"
+
+    # Header
+    ws.append(["User", "Date", "Check In", "Check Out"])
+
+    records = Attendance.objects.all()
+
+    for r in records:
+        ws.append([
+            r.user.username,
+            str(r.date),
+            str(r.check_in),
+            str(r.check_out)
+        ])
+
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename=attendance_report.xlsx'
+
+    wb.save(response)
+    return response

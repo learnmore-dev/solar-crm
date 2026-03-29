@@ -58,5 +58,14 @@ urlpatterns = [
     path('conversions/', views.convergent_list, name='convergent_list'),
     path('conversions/today/', views.today_followups, name='today_followups'),
     path('conversions/overdue/', views.overdue_followups, name='overdue_followups'),
-
+    path('attendance/', views.attendance, name='attendance'),
+path('attendance/admin/', views.attendance_admin, name='attendance_admin'),
+path('attendance/report/', views.attendance_report, name='attendance_report'),
+path('check-in/', views.check_in, name='check_in'),
+path('check-out/', views.check_out, name='check_out'),
+path('apply-leave/', views.apply_leave, name='apply_leave'),
+path('leave-admin/', views.leave_admin, name='leave_admin'),
+path('approve-leave/<int:pk>/', views.approve_leave, name='approve_leave'),
+path('reject-leave/<int:pk>/', views.reject_leave, name='reject_leave'),
+path('attendance/download/', views.download_attendance_excel, name='download_attendance_excel'),
 ]

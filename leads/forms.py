@@ -64,3 +64,26 @@ class ConvergentLeadForm(forms.ModelForm):
             'follow_up_time': forms.TimeInput(attrs={'type': 'time', 'class': 'form-control'}),
             'remarks': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
+from .models import Leave
+
+class LeaveForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['leave_date', 'leave_type', 'reason']
+
+        widgets = {
+            'leave_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'leave_type': forms.Select(attrs={'class': 'form-select'}),
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }
+
+class LeaveForm(forms.ModelForm):
+    class Meta:
+        model = Leave
+        fields = ['leave_date', 'leave_type', 'reason']
+
+        widgets = {
+            'leave_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'leave_type': forms.Select(attrs={'class': 'form-select'}),
+            'reason': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
+        }

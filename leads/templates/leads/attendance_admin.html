@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- TITLE -->
+    <h3 class="fw-bold mb-4">
+        <i class="fa fa-calendar-check text-success"></i> My Attendance
+    </h3>
+
+    <!-- ACTION BUTTONS -->
+    <div class="d-flex gap-2 mb-4">
+        <a href="{% url 'leads:check_in' %}" class="btn btn-success px-4">
+            <i class="fa fa-sign-in-alt"></i> Check In
+        </a>
+
+        <a href="{% url 'leads:check_out' %}" class="btn btn-danger px-4">
+            <i class="fa fa-sign-out-alt"></i> Check Out
+        </a>
+    </div>
+
+    <!-- FILTER CARD -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <form method="get" class="row g-3 align-items-end">
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">From Date</label>
+                    <input type="date" name="start_date" class="form-control"
+                           value="{{ request.GET.start_date }}">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">To Date</label>
+                    <input type="date" name="end_date" class="form-control"
+                           value="{{ request.GET.end_date }}">
+                </div>
+
+                <div class="col-md-4 d-flex gap-2">
+                    <button class="btn btn-primary w-100">
+                        <i class="fa fa-filter"></i> Filter
+                    </button>
+
+                    <a href="{% url 'leads:attendance' %}" class="btn btn-secondary w-100">
+                        Reset
+                    </a>
+                </div>
+
+            </form>
+
+        </div>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Date</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Working Hours</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for r in records %}
+                        <tr>
+
+                            <!-- DATE -->
+                            <td class="fw-semibold">
+                                {{ r.date|date:"M d, Y" }}
+                            </td>
+
+                            <!-- CHECK IN -->
+                            <td>
+                                {{ r.check_in|time:"h:i A"|default:"--" }}
+                            </td>
+
+                            <!-- CHECK OUT -->
+                            <td>
+                                {{ r.check_out|time:"h:i A"|default:"--" }}
+                            </td>
+
+                            <!-- WORKING HOURS -->
+                            <td>
+                                {% if r.working_hours %}
+                                    {{ r.working_hours }}
+                                {% else %}
+                                    --
+                                {% endif %}
+                            </td>
+
+                            <!-- STATUS -->
+                            <td>
+                                {% if r.status == "On Time" %}
+                                    <span class="badge bg-success px-3 py-2">On Time</span>
+
+                                {% elif r.status == "Late" %}
+                                    <span class="badge bg-warning text-dark px-3 py-2">Late</span>
+
+                                {% else %}
+                                    <span class="badge bg-danger px-3 py-2">Absent</span>
+                                {% endif %}
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-muted py-3">
+                                No attendance records found
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+{% if user.is_superuser %}
+<a href="{% url 'leads:download_attendance_excel' %}" class="btn btn-success">
+    Download Excel
+</a>
+{% endif %}
+{% endblock %}

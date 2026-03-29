@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+
+<style>
+    body {
+        background-color: #f5f6fa;
+    }
+
+    .leave-card {
+        max-width: 520px;
+        margin: 50px auto;
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+
+    .leave-header {
+        background: linear-gradient(90deg, #4e73df, #8e2de2);
+        color: white;
+        padding: 20px;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .leave-body {
+        background: white;
+        padding: 25px;
+    }
+
+    .form-label {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .form-control, .form-select {
+        border-radius: 10px;
+        padding: 10px;
+        margin-bottom: 12px;
+    }
+
+    .submit-btn {
+        background: linear-gradient(90deg, #4e73df, #8e2de2);
+        color: white;
+        border: none;
+        padding: 12px;
+        width: 100%;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+    .submit-btn:hover {
+        opacity: 0.9;
+    }
+
+    .alert {
+        border-radius: 10px;
+        font-size: 14px;
+    }
+
+    .error-text {
+        color: red;
+        font-size: 13px;
+    }
+</style>
+
+<div class="container">
+    <div class="leave-card">
+
+        <!-- HEADER -->
+        <div class="leave-header">
+            📅 Apply for Leave
+        </div>
+
+        <!-- BODY -->
+        <div class="leave-body">
+
+            <!-- SUCCESS MESSAGE -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+
+                <!-- LEAVE DATE -->
+                <label class="form-label">📅 Leave Date</label>
+                {{ form.leave_date }}
+                {% if form.leave_date.errors %}
+                    <div class="error-text">{{ form.leave_date.errors }}</div>
+                {% endif %}
+
+                <small class="text-muted">
+                    Select the date you want leave for
+                </small>
+
+                <!-- LEAVE TYPE -->
+                <label class="form-label mt-3">📝 Leave Type</label>
+                {{ form.leave_type }}
+                {% if form.leave_type.errors %}
+                    <div class="error-text">{{ form.leave_type.errors }}</div>
+                {% endif %}
+
+                <!-- REASON -->
+                <label class="form-label mt-3">✏️ Reason</label>
+                {{ form.reason }}
+                {% if form.reason.errors %}
+                    <div class="error-text">{{ form.reason.errors }}</div>
+                {% endif %}
+
+                <!-- SUBMIT BUTTON -->
+                <button type="submit" class="submit-btn mt-3">
+                    📩 Submit Leave Application
+                </button>
+
+            </form>
+
+        </div>
+    </div>
+</div>
+
+{% endblock %}

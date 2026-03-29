@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="container mt-4">
+
+    <!-- TITLE -->
+    <h3 class="fw-bold mb-4">
+        <i class="fa fa-chart-bar text-primary"></i> Monthly Attendance Report
+    </h3>
+
+    <!-- SUMMARY CARD -->
+    <div class="row mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0 bg-primary text-white">
+                <div class="card-body text-center">
+                    <h5>Total Months</h5>
+                    <h2>{{ report|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TABLE CARD -->
+    <div class="card shadow-sm border-0">
+        <div class="card-body">
+
+            <div class="table-responsive">
+                <table class="table table-hover text-center align-middle">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Month</th>
+                            <th style="width: 50%">Attendance</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                    {% for r in report %}
+                        <tr>
+
+                            <!-- MONTH -->
+                            <td>
+                                <i class="fa fa-calendar text-primary"></i>
+                                {{ r.month|date:"F Y" }}
+                            </td>
+
+                            <!-- PROGRESS + BADGE -->
+                            <td>
+
+                                <!-- Progress Bar -->
+                                <div class="progress mb-2" style="height: 18px;">
+                                    <div class="progress-bar bg-success"
+                                         role="progressbar"
+                                         style="width: {{ r.total }}%">
+                                    </div>
+                                </div>
+
+                                <!-- Colored Badge -->
+                                {% if r.total >= 20 %}
+                                    <span class="badge bg-success px-3 py-2">
+                                        {{ r.total }} Days (Good)
+                                    </span>
+                                {% elif r.total >= 10 %}
+                                    <span class="badge bg-warning text-dark px-3 py-2">
+                                        {{ r.total }} Days (Average)
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger px-3 py-2">
+                                        {{ r.total }} Days (Low)
+                                    </span>
+                                {% endif %}
+
+                            </td>
+
+                        </tr>
+
+                    {% empty %}
+                        <tr>
+                            <td colspan="2" class="text-muted">
+                                No attendance data available
+                            </td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
