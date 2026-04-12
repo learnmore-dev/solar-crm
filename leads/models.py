@@ -106,8 +106,14 @@ class Lead(models.Model):
 class Attendance(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     date = models.DateField()
+
     check_in = models.TimeField(null=True, blank=True)
     check_out = models.TimeField(null=True, blank=True)
+
+    # 🔥 NEW FIELDS (ADD THIS)
+    photo = models.ImageField(upload_to='attendance_photos/', null=True, blank=True)
+    latitude = models.CharField(max_length=100, null=True, blank=True)
+    longitude = models.CharField(max_length=100, null=True, blank=True)
 
     # ✅ WORKING HOURS
     @property
@@ -118,13 +124,13 @@ class Attendance(models.Model):
             return end - start
         return None
 
-    # ✅ STATUS LOGIC (FINAL)
+    # ✅ STATUS LOGIC
     @property
     def status(self):
         if not self.check_in:
             return "Absent"
 
-        late_time = time(10, 0)  # 10:00 AM
+        late_time = time(10, 0)
 
         if self.check_in > late_time:
             return "Late"
@@ -133,8 +139,6 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.date}"
-    # ===============================
-
 
     
 # ===============================

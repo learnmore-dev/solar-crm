@@ -3,86 +3,88 @@
 
 <div class="container mt-4">
 
-    <!-- TITLE -->
-    <h3 class="fw-bold mb-3">
-        <i class="fa fa-calendar-check text-success"></i> My Attendance
-    </h3>
-
-    <!-- ACTION BUTTONS -->
-    <div class="d-flex gap-2 mb-3">
-        <a href="{% url 'leads:check_in' %}" class="btn btn-success">
-            <i class="fa fa-sign-in-alt"></i> Check In
-        </a>
-        <a href="{% url 'leads:check_out' %}" class="btn btn-danger">
-            <i class="fa fa-sign-out-alt"></i> Check Out
-        </a>
+    <!-- DASHBOARD -->
+    <div class="row text-center mb-4">
+        <div class="col-md-4">
+            <div class="card shadow p-3">
+                <h6>Today's Status</h6>
+                <h3 class="text-primary">
+    {% if today_record %}
+        {% if today_record.check_in %}
+            ✅ Checked In at {{ today_record.check_in }}
+        {% else %}
+            ❌ Not Checked In
+        {% endif %}
+    {% else %}
+        ❌ Not Checked In
+    {% endif %}
+</h3>
+            </div>
+        </div>
     </div>
 
-    <!-- FILTER -->
-    <form method="get" class="row g-2 mb-4">
-        <div class="col-md-3">
-            <input type="date" name="start_date" value="{{ start_date }}" class="form-control">
-        </div>
-        <div class="col-md-3">
-            <input type="date" name="end_date" value="{{ end_date }}" class="form-control">
-        </div>
-        <div class="col-md-2">
-            <button class="btn btn-primary w-100">
-                <i class="fa fa-filter"></i> Filter
-            </button>
-        </div>
+    <h3 class="fw-bold mb-3">My Attendance</h3>
+
+    <!-- BUTTONS -->
+    <div class="d-flex gap-2 mb-3">
+        <button onclick="startCheckIn()" class="btn btn-success">📸 Check In</button>
+        <button onclick="startCheckOut()" class="btn btn-danger">📸 Check Out</button>
+    </div>
+
+    <!-- CAMERA -->
+    <video id="camera" width="300" height="200" autoplay style="display:none;"></video>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <!-- FORMS -->
+    <form method="POST" action="{% url 'leads:check_in' %}" id="checkinForm">
+        {% csrf_token %}
+        <input type="hidden" name="photo" id="photoInput">
+        <input type="hidden" name="latitude" id="lat">
+        <input type="hidden" name="longitude" id="lng">
+    </form>
+
+    <form method="POST" action="{% url 'leads:check_out' %}" id="checkoutForm">
+        {% csrf_token %}
+        <input type="hidden" name="photo" id="photoOut">
+        <input type="hidden" name="latitude" id="latOut">
+        <input type="hidden" name="longitude" id="lngOut">
     </form>
 
     <!-- TABLE -->
     <div class="card shadow-sm">
         <div class="card-body">
-            <table class="table table-hover align-middle">
-                <thead class="table-dark text-center">
+            <table class="table text-center">
+                <thead class="table-dark">
                     <tr>
                         <th>Date</th>
                         <th>Check In</th>
                         <th>Check Out</th>
-                        <th>Working Hours</th>
                         <th>Status</th>
+                        <th>Photo</th>
+                        <th>Location</th>
                     </tr>
                 </thead>
-
-                <tbody class="text-center">
-
+                <tbody>
                 {% for r in records %}
                     <tr>
-                        <td>{{ r.date|date:"M d, Y" }}</td>
-
+                        <td>{{ r.date }}</td>
+                        <td>{{ r.check_in }}</td>
+                        <td>{{ r.check_out }}</td>
+                        <td>{{ r.status }}</td>
                         <td>
-                            {{ r.check_in|time:"h:i A"|default:"--" }}
+                            {% if r.photo %}
+                                <img src="{{ r.photo.url }}" width="50">
+                            {% endif %}
                         </td>
-
                         <td>
-                            {{ r.check_out|time:"h:i A"|default:"--" }}
-                        </td>
-
-                        <td>
-                            {{ r.working_hours|default:"--" }}
-                        </td>
-
-                        <!-- STATUS COLORS -->
-                        <td>
-                            {% if r.status == "On Time" %}
-                                <span class="badge bg-success px-3 py-2">On Time</span>
-                            {% elif r.status == "Late" %}
-                                <span class="badge bg-warning text-dark px-3 py-2">Late</span>
-                            {% else %}
-                                <span class="badge bg-danger px-3 py-2">Absent</span>
+                            {% if r.latitude %}
+                                <button onclick="showMap({{ r.latitude }}, {{ r.longitude }})" class="btn btn-info btn-sm">
+                                    📍 Map
+                                </button>
                             {% endif %}
                         </td>
                     </tr>
-
-                {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-muted">No attendance records</td>
-                    </tr>
                 {% endfor %}
-
                 </tbody>
             </table>
         </div>
@@ -90,4 +92,157 @@
 
 </div>
 
+<!-- MAP MODAL -->
+<div id="mapModal" style="display:none; position:fixed; top:10%; left:20%; width:60%; height:60%; background:white;">
+    <button onclick="closeMap()">Close</button>
+    <iframe id="mapFrame" width="100%" height="90%"></iframe>
+</div>
+
+<!-- FACE API -->
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+
+
+<script>
+console.log("JS Loaded ✅");
+
+// OFFICE LOCATION
+const OFFICE_LAT = 12.95602;
+const OFFICE_LNG = 77.71662;
+const MAX_DISTANCE = 2000;
+
+let mode = "";
+
+// DISTANCE FUNCTION
+function getDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371e3;
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+        Math.cos(φ1) * Math.cos(φ2) *
+        Math.sin(Δλ/2) * Math.sin(Δλ/2);
+
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+}
+
+// SAFE FACE DETECTION (optional)
+async function detectFace(video) {
+    try {
+        await faceapi.nets.tinyFaceDetector.loadFromUri('/static/models');
+
+        const detections = await faceapi.detectAllFaces(
+            video,
+            new faceapi.TinyFaceDetectorOptions()
+        );
+
+        return detections.length > 0;
+    } catch (e) {
+        console.log("Face detection skipped ⚠️", e);
+        return true; // allow if model fails
+    }
+}
+
+// START CAMERA
+async function startCamera(type) {
+    console.log("Button clicked:", type);
+
+    mode = type;
+
+    const video = document.getElementById('camera');
+    video.style.display = 'block';
+
+    try {
+        // CAMERA
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+
+        // LOCATION
+        navigator.geolocation.getCurrentPosition(async position => {
+
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+
+            console.log("Location:", lat, lng);
+
+            const distance = getDistance(lat, lng, OFFICE_LAT, OFFICE_LNG);
+
+            if (distance > MAX_DISTANCE) {
+                alert("❌ Outside office!");
+                return;
+            }
+
+            // WAIT 3 SEC → CAPTURE
+            setTimeout(async () => {
+
+                // FACE CHECK (SAFE)
+                const face = await detectFace(video);
+                if (!face) {
+                    alert("❌ Face not detected!");
+                    return;
+                }
+
+                capturePhoto(lat, lng);
+
+            }, 3000);
+
+        }, () => {
+            alert("❌ Location permission denied!");
+        });
+
+    } catch (err) {
+        console.error("Camera error:", err);
+        alert("❌ Camera not working! Allow permission.");
+    }
+}
+
+// BUTTON FUNCTIONS
+function startCheckIn() {
+    startCamera("in");
+}
+
+function startCheckOut() {
+    startCamera("out");
+}
+
+// CAPTURE PHOTO
+function capturePhoto(lat, lng) {
+    console.log("Capturing photo...");
+
+    const canvas = document.getElementById('canvas');
+    const video = document.getElementById('camera');
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0);
+
+    const img = canvas.toDataURL('image/png');
+
+    if (mode === "in") {
+        document.getElementById('photoInput').value = img;
+        document.getElementById('lat').value = lat;
+        document.getElementById('lng').value = lng;
+        document.getElementById('checkinForm').submit();
+    } else {
+        document.getElementById('photoOut').value = img;
+        document.getElementById('latOut').value = lat;
+        document.getElementById('lngOut').value = lng;
+        document.getElementById('checkoutForm').submit();
+    }
+}
+
+// MAP
+function showMap(lat, lng) {
+    document.getElementById('mapFrame').src =
+        `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`;
+    document.getElementById('mapModal').style.display = 'block';
+}
+
+function closeMap() {
+    document.getElementById('mapModal').style.display = 'none';
+}
+</script>
 {% endblock %}

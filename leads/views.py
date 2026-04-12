@@ -369,65 +369,101 @@ from django.db.models import Count
 from django.db.models.functions import TruncMonth
 from .models import Attendance
 from django.contrib.auth.decorators import login_required
-
+import base64
+from django.core.files.base import ContentFile
+from datetime import datetime
 # ✅ Check In
 @login_required
 def check_in(request):
-    today = date.today()
+    if request.method == "POST":
+        photo_data = request.POST.get('photo')
+        lat = request.POST.get('latitude')
+        lng = request.POST.get('longitude')
 
-    attendance, created = Attendance.objects.get_or_create(
-        user=request.user,
-        date=today
-    )
+        today = datetime.now().date()
+        now_time = datetime.now().time()
 
-    if not attendance.check_in:
-        attendance.check_in = datetime.now().time()
+        attendance, created = Attendance.objects.get_or_create(
+            user=request.user,
+            date=today
+        )
+
+        attendance.check_in = now_time
+
+        # 📸 SAVE PHOTO (SAFE)
+        if photo_data and "base64" in photo_data:
+            try:
+                format, imgstr = photo_data.split(';base64,')
+                ext = format.split('/')[-1]
+                file = ContentFile(base64.b64decode(imgstr), name='checkin.' + ext)
+                attendance.photo = file
+            except Exception as e:
+                print("Photo error:", e)
+
+        # 📍 SAVE LOCATION
+        attendance.latitude = lat
+        attendance.longitude = lng
+
         attendance.save()
 
-    return redirect('leads:attendance')
-
-
+        return redirect('leads:attendance')
 # ✅ Check Out
+
+import base64
+from django.core.files.base import ContentFile
+from datetime import datetime
 @login_required
 def check_out(request):
-    today = date.today()
+    if request.method == "POST":
 
-    attendance = Attendance.objects.filter(
-        user=request.user,
-        date=today
-    ).first()
+        photo_data = request.POST.get('photo')
+        lat = request.POST.get('latitude')
+        lng = request.POST.get('longitude')
 
-    if attendance and not attendance.check_out:
-        attendance.check_out = datetime.now().time()
-        attendance.save()
+        today = datetime.now().date()
+        now_time = datetime.now().time()
 
-    return redirect('leads:attendance')
+        attendance = Attendance.objects.filter(
+            user=request.user,
+            date=today
+        ).first()
 
+        if attendance:
+            attendance.check_out = now_time
 
+            # 📸 SAVE PHOTO
+            if photo_data and "base64" in photo_data:
+                try:
+                    format, imgstr = photo_data.split(';base64,')
+                    ext = format.split('/')[-1]
+                    file = ContentFile(base64.b64decode(imgstr), name='checkout.' + ext)
+                    attendance.photo = file
+                except Exception as e:
+                    print("Photo error:", e)
+
+            # 📍 SAVE LOCATION
+            attendance.latitude = lat
+            attendance.longitude = lng
+
+            attendance.save()
+
+        return redirect('leads:attendance')
 from datetime import date
 from django.contrib.auth.decorators import login_required
 from .models import Attendance
 
 # ✅ Attendance (User)
+
 @login_required
 def attendance(request):
-    records = Attendance.objects.filter(user=request.user)
+    records = Attendance.objects.filter(user=request.user).order_by('-date')
 
-    # ✅ Date filter
-    start_date = request.GET.get('start_date')
-    end_date = request.GET.get('end_date')
-
-    if start_date and end_date:
-        records = records.filter(date__range=[start_date, end_date])
-
-    records = records.order_by('-date')
-
-    # ❌ REMOVE STATUS LOGIC HERE (IMPORTANT)
+    today = date.today()
+    today_record = Attendance.objects.filter(user=request.user, date=today).first()
 
     return render(request, "leads/attendance.html", {
         "records": records,
-        "start_date": start_date,
-        "end_date": end_date
+        "today_record": today_record
     })
 
 
